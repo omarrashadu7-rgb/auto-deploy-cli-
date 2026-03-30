@@ -1,0 +1,9 @@
+[
+  {
+    "timestamp": "20260330_010331",
+    "project_path": "C:\\Users\\Lenovo\\test-app",
+    "port": 5000,
+    "url": "http://localhost:5000",
+    "log_file": "deploy_logs\\deploy_20260330_010331.log"
+  }
+]
