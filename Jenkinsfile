@@ -20,6 +20,7 @@ pipeline {
                 sh '''
                 docker build \
                 -t ${IMAGE_NAME}:${IMAGE_TAG} \
+                -t ${IMAGE_NAME}:latest \
                 ./test-app
                 '''
             }
@@ -36,14 +37,18 @@ pipeline {
 
         stage('Deploy New Version') {
             steps {
-                sh '''
-                docker rm -f ${CONTAINER_NAME} || true
+		sh '''
+		docker rm -f ${CONTAINER_NAME} || true
 
-                docker run -d \
-                  --name ${CONTAINER_NAME} \
-                  -p 5000:5000 \
-                  ${IMAGE_NAME}:${IMAGE_TAG}
-                '''
+		while docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; do
+		    sleep 1
+		done
+
+		docker run -d \
+		  --name ${CONTAINER_NAME} \
+		  -p 5000:5000 \
+		  ${IMAGE_NAME}:${IMAGE_TAG}
+		'''
             }
         }
 
@@ -56,6 +61,25 @@ pipeline {
                 '''
             }
         }
+        
+       	 stage('Cleanup Containers') {
+   		 steps {
+      		 sh '''
+        	 docker container prune -f
+        	 '''
+    		}
+	}
+	
+        stage('Cleanup Old Images') {
+   		steps {
+        		sh '''
+			docker images ${IMAGE_NAME} \
+        		--format "{{.Repository}}:{{.Tag}}" \
+        		| tail -n +6 \
+       			| xargs -r docker rmi || true
+       			'''
+    		}
+	}
     }
 
     post {
