@@ -1,7 +1,7 @@
 from flask import Flask
 
 app = Flask(__name__)
-
+raise Exception("test rollback")
 @app.route("/")
 def home():
     return "AutoDeploy is working 🚀"
