@@ -4,6 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = "autodeploy-app"
         IMAGE_TAG = "${BUILD_NUMBER}"
+        CONTAINER_NAME = "autodeploy-container"
     }
 
     stages {
@@ -24,21 +25,24 @@ pipeline {
             }
         }
 
-        stage('Verify Image') {
+        stage('Backup Current Version') {
             steps {
-                sh 'docker images'
+                sh '''
+                docker inspect ${CONTAINER_NAME} >/dev/null 2>&1 && \
+                docker commit ${CONTAINER_NAME} rollback-image:latest || true
+                '''
             }
         }
 
-        stage('Deploy Container') {
+        stage('Deploy New Version') {
             steps {
                 sh '''
-                docker rm -f autodeploy-container || true
+                docker rm -f ${CONTAINER_NAME} || true
 
                 docker run -d \
-                --name autodeploy-container \
-                -p 5000:5000 \
-                ${IMAGE_NAME}:${IMAGE_TAG}
+                  --name ${CONTAINER_NAME} \
+                  -p 5000:5000 \
+                  ${IMAGE_NAME}:${IMAGE_TAG}
                 '''
             }
         }
@@ -47,9 +51,30 @@ pipeline {
             steps {
                 sh '''
                 sleep 10
-                curl http://localhost:5000
+
+                curl -f http://localhost:5000
                 '''
             }
+        }
+    }
+
+    post {
+
+        success {
+            echo "Deployment Successful"
+        }
+
+        failure {
+            echo "Deployment Failed - Starting Rollback"
+
+            sh '''
+            docker rm -f ${CONTAINER_NAME} || true
+
+            docker run -d \
+              --name ${CONTAINER_NAME} \
+              -p 5000:5000 \
+              rollback-image:latest || true
+            '''
         }
     }
 }
