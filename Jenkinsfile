@@ -52,16 +52,19 @@ pipeline {
             }
         }
 
-        stage('Health Check') {
-            steps {
-		for i in {1..20}; do
+	 stage('Health Check') {
+	    steps {
+		sh '''
+		for i in $(seq 1 20)
+		do
 		    curl -f http://localhost:5000 && exit 0
 		    sleep 2
 		done
 
 		exit 1
-            }
-        }
+		'''
+	    }
+	}
         
        	 stage('Cleanup Containers') {
    		 steps {
