@@ -54,11 +54,12 @@ pipeline {
 
         stage('Health Check') {
             steps {
-                sh '''
-                sleep 10
+		for i in {1..20}; do
+		    curl -f http://localhost:5000 && exit 0
+		    sleep 2
+		done
 
-                curl -f http://localhost:5000
-                '''
+		exit 1
             }
         }
         
