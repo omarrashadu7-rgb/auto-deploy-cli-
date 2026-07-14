@@ -1,14 +1,30 @@
-from flask import Flask
+from flask import Flask, jsonify
+from datetime import datetime, timezone
+import os
 
 app = Flask(__name__)
 
+
+APP_VERSION = os.getenv("APP_VERSION", "1.0.0")
+
+
 @app.route("/")
-def home():
-    return "AutoDeploy is working 🚀"
+def index():
+    return jsonify({
+        "application": "AutoDeploy CI/CD Platform",
+        "status": "running",
+        "version": APP_VERSION
+    }), 200
+
 
 @app.route("/health")
 def health():
-    return {"status": "ok"}
+    return jsonify({
+        "status": "healthy",
+        "version": APP_VERSION,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }), 200
+
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=4040)
+    app.run(host="0.0.0.0", port=5000)
