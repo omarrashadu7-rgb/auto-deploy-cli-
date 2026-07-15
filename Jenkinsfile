@@ -29,17 +29,17 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                echo "Building Docker image: ${IMAGE_NAME}:${IMAGE_TAG}"
-                dir('test-app') {
-                    sh "docker build \
-			-t ${IMAGE_NAME}:${IMAGE_TAG} \
-			-t ${IMAGE_NAME}:latest \ 
-			."
-                }
-            }
-        }
+	stage('Build Docker Image') {
+	    steps {
+		echo "Building Docker image: ${IMAGE_NAME}:${IMAGE_TAG}"
+
+		dir('test-app') {
+		    sh """
+		    docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest .
+		    """
+		}
+	    }
+	}
 
         stage('Backup Current Container') {
             steps {
