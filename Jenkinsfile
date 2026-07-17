@@ -1,18 +1,20 @@
 pipeline {
     agent any
 
-    environment {
-        APP_NAME       = "auto-deploy-app"
-        IMAGE_NAME     = "auto-deploy-app"
-        IMAGE_TAG      = "${BUILD_NUMBER}"
-        ROLLBACK_TAG   = "rollback"
-        CONTAINER_NAME = "auto-deploy-app-container"
-        APP_PORT       = "4040"
-        HOST_PORT      = "4040"
-        HEALTH_URL     = "http://localhost:${HOST_PORT}/health"
-        HEALTH_RETRIES = "5"
-        HEALTH_DELAY   = "3"
-    }
+	environment {
+	    APP_NAME       = "auto-deploy-app"
+	    IMAGE_NAME     = "auto-deploy-app"
+	    IMAGE_TAG      = "${BUILD_NUMBER}"
+	    ROLLBACK_TAG   = "rollback"
+	    CONTAINER_NAME = "auto-deploy-app-container"
+
+	    APP_PORT       = "5000"
+	    HOST_PORT      = "5000"
+
+	    HEALTH_URL     = "http://localhost:5000/health"
+	    HEALTH_RETRIES = "10"
+	    HEALTH_DELAY   = "3"
+	}
 
     options {
         timestamps()
@@ -31,12 +33,8 @@ pipeline {
 
 	stage('Build Docker Image') {
 	    steps {
-		echo "Building Docker image: ${IMAGE_NAME}:${IMAGE_TAG}"
-
 		dir('test-app') {
-		    sh """
-		    docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest .
-		    """
+		    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest ."
 		}
 	    }
 	}
@@ -68,7 +66,6 @@ pipeline {
                     docker stop ${CONTAINER_NAME} || true
                     docker rm ${CONTAINER_NAME} || true
                     docker run -d \
-			docker run -d \
 			--name ${CONTAINER_NAME} \
 			-e APP_VERSION=${IMAGE_TAG} \
 			-p ${HOST_PORT}:${APP_PORT} \
