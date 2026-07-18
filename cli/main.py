@@ -237,4 +237,4 @@ if __name__ == "__main__":
         deploy(path)
     else:
         print("Usage: python main.py deploy [project_path]")
-        print("Example: python main.py deploy ../test-app")
+        print("Example: python main.py deploy ../test-app") 

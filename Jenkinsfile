@@ -4,6 +4,7 @@ pipeline {
 	environment {
 	    APP_NAME       = "auto-deploy-app"
 	    IMAGE_NAME     = "auto-deploy-app"
+	    REGISTRY_IMAGE = "ghcr.io/omarrashadu7-rgb/auto-deploy-app"
 	    IMAGE_TAG      = "${BUILD_NUMBER}"
 	    ROLLBACK_TAG   = "rollback"
 	    CONTAINER_NAME = "auto-deploy-app-container"
@@ -34,7 +35,7 @@ pipeline {
 	stage('Build Docker Image') {
 	    steps {
 		dir('test-app') {
-		    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest ."
+		    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest -t ${REGISTRY_IMAGE}:${IMAGE_TAG} ."
 		}
 	    }
 	}
@@ -103,6 +104,18 @@ pipeline {
                 }
             }
         }
+        
+        
+	stage('Push to Registry') {
+	    steps {
+		withCredentials([usernamePassword(credentialsId: 'ghcr-credentials', usernameVariable: 'GHCR_USER', passwordVariable: 'GHCR_TOKEN')]) {
+		    sh """
+		        echo \$GHCR_TOKEN | docker login ghcr.io -u \$GHCR_USER --password-stdin
+		        docker push ${REGISTRY_IMAGE}:${IMAGE_TAG}
+		    """
+		}
+	    }
+	}
     }
 
     post {
