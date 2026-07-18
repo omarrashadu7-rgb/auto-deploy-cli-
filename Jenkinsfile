@@ -108,11 +108,13 @@ pipeline {
         
 	stage('Push to Registry') {
 	    steps {
-		withCredentials([usernamePassword(credentialsId: 'ghcr-credentials', usernameVariable: 'GHCR_USER', passwordVariable: 'GHCR_TOKEN')]) {
-		    sh """
-		        echo \$GHCR_TOKEN | docker login ghcr.io -u \$GHCR_USER --password-stdin
-		        docker push ${REGISTRY_IMAGE}:${IMAGE_TAG}
-		    """
+		catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+		    withCredentials([usernamePassword(credentialsId: 'ghcr-credentials', usernameVariable: 'GHCR_USER', passwordVariable: 'GHCR_TOKEN')]) {
+		        sh """
+		            echo \$GHCR_TOKEN | docker login ghcr.io -u \$GHCR_USER --password-stdin
+		            docker push ${REGISTRY_IMAGE}:${IMAGE_TAG}
+		        """
+		    }
 		}
 	    }
 	}
